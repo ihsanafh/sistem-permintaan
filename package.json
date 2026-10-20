@@ -1,0 +1,12 @@
+{
+  "name": "sistem-permintaan-barang",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "dependencies": {
+    "firebase": "^10.14.1"
+  }
+}

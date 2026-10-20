@@ -1,0 +1,70 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && getUserData().role == 'admin';
+    }
+    
+    function isPetugas() {
+      return isAuthenticated() && getUserData().role == 'petugas';
+    }
+
+    // users collection
+    match /users/{userId} {
+      allow read: if isAuthenticated(); // everyone can read user profiles (e.g. names for logs)
+      allow create: if request.auth.uid == userId; // user can create own profile on first login
+      allow update: if (request.auth.uid == userId) || isAdmin(); // user can update own profile, admin can update roles
+      allow delete: if isAdmin();
+    }
+
+    // barang collection
+    match /barang/{itemId} {
+      allow read: if isAuthenticated(); // everyone can see available items
+      allow write: if isAdmin(); // only admin can manage catalog & restock (stock opname)
+    }
+
+    // permintaan collection
+    match /permintaan/{requestId} {
+      // Pegawai can read their own, Admin and Petugas can read all
+      allow read: if isAdmin() || isPetugas() || (isAuthenticated() && resource.data.pegawaiId == request.auth.uid);
+      
+      // Pegawai can create a request
+      allow create: if isAuthenticated() && request.resource.data.pegawaiId == request.auth.uid;
+      
+      // Pegawai can update their request (e.g. Confirm received, Sanggahan)
+      // Admin can update to Approve/Reject/Edit
+      // Petugas cannot update here directly (they use delivery_logs, but might need to trigger status? No, status usually updated via cloud function or server if atomic)
+      allow update: if isAdmin() || (isAuthenticated() && resource.data.pegawaiId == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+
+    // delivery_logs collection
+    match /delivery_logs/{logId} {
+      // Admin, Petugas, and the target Pegawai can read
+      allow read: if isAdmin() || isPetugas() || (isAuthenticated() && resource.data.pegawaiId == request.auth.uid);
+      
+      // Petugas creates delivery logs
+      allow create: if isPetugas();
+      allow update, delete: if isAdmin();
+    }
+
+    // riwayat_stok collection (Audit Trail)
+    match /riwayat_stok/{logId} {
+      // Admin can read all logs. Others maybe none or their own related? Let's say Admin only.
+      allow read: if isAdmin();
+      // Writing to this should ideally be done by server (Cloud Functions / Next API) or Admin
+      allow create: if isAdmin() || isAuthenticated(); // Allow creation if done via transaction along with request
+      allow update, delete: if false; // Audit logs should never be modified or deleted
+    }
+  }
+}

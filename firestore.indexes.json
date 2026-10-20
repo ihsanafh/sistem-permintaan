@@ -1,0 +1,29 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "permintaan",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "pegawaiId", "order": "ASCENDING" },
+        { "fieldPath": "waktuSelesai", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "permintaan",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "waktuSelesai", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "riwayat_stok",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "barangId", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
