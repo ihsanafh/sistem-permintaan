@@ -7,6 +7,9 @@
     "packages/*"
   ],
   "dependencies": {
+    "expo-auth-session": "~57.0.16",
+    "expo-crypto": "~57.0.4",
+    "expo-web-browser": "~57.0.3",
     "firebase": "^10.14.1"
   }
 }

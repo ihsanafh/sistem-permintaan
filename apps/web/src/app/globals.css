@@ -1,8 +1,10 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Latar belakang abu-abu muda (slate-50) agar kartu putih lebih menonjol */
+  --background: #f8fafc; 
+  /* Teks abu-abu sangat gelap (slate-900) agar kontras dan mudah dibaca */
+  --foreground: #0f172a; 
 }
 
 @theme inline {
@@ -12,12 +14,7 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* KITA HAPUS BLOK @media (prefers-color-scheme: dark) DI SINI */
 
 body {
   background: var(--background);

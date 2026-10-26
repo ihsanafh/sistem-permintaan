@@ -5,20 +5,20 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import {
   Package,
-  UploadCloud,
-  ClipboardList,
   Users,
   LogOut,
   BarChart3,
   ChevronRight,
+  Inbox,
+  FileSpreadsheet,
 } from 'lucide-react';
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: BarChart3, exact: true },
+  { href: '/admin/permintaan', label: 'Permintaan Barang', icon: Inbox },
   { href: '/admin/barang', label: 'Master Barang', icon: Package },
-  { href: '/admin/restock', label: 'Restock Excel', icon: UploadCloud },
-  { href: '/admin/stock-opname', label: 'Stock Opname', icon: ClipboardList },
   { href: '/admin/pengguna', label: 'Kelola Pengguna', icon: Users },
+  { href: '/admin/laporan', label: 'Laporan Rekap', icon: FileSpreadsheet },
 ];
 
 export default function AdminSidebar() {

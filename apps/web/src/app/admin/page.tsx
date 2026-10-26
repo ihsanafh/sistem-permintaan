@@ -1,13 +1,10 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { Package, UploadCloud, ClipboardList, TrendingUp, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
-
-const stats = [
-  { label: 'Total Item Barang', value: '-', icon: Package, color: 'bg-blue-500', href: '/admin/barang' },
-  { label: 'Stok Menipis (< 5)', value: '-', icon: AlertTriangle, color: 'bg-amber-500', href: '/admin/barang' },
-  { label: 'Restock Terakhir', value: '-', icon: TrendingUp, color: 'bg-green-500', href: '/admin/restock' },
-];
+import { collection, getCountFromServer, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
+import { db } from '@/lib/firebase'; // Pastikan path import ini sesuai dengan lokasi firebase.ts Anda
 
 const quickActions = [
   { label: 'Kelola Master Barang', desc: 'Tambah, edit, non-aktifkan barang', icon: Package, href: '/admin/barang', color: 'from-blue-500 to-blue-600' },
@@ -16,6 +13,60 @@ const quickActions = [
 ];
 
 export default function AdminDashboard() {
+  // State untuk menyimpan data statistik
+  const [totalBarang, setTotalBarang] = useState<number | string>('-');
+  const [stokMenipis, setStokMenipis] = useState<number | string>('-');
+  const [lastRestock, setLastRestock] = useState<string>('-');
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const barangRef = collection(db, 'barang');
+
+        // 1. Ambil Total Item Barang
+        const totalSnapshot = await getCountFromServer(barangRef);
+        setTotalBarang(totalSnapshot.data().count);
+
+        // 2. Ambil Stok Menipis (Stok di bawah 5)
+        const menipisQuery = query(barangRef, where('stok', '<', 5));
+        const menipisSnapshot = await getCountFromServer(menipisQuery);
+        setStokMenipis(menipisSnapshot.data().count);
+
+        // 3. Ambil Tanggal Restock Terakhir
+        try {
+          const restockRef = collection(db, 'restock');
+          const restockQuery = query(restockRef, orderBy('createdAt', 'desc'), limit(1));
+          const restockSnap = await getDocs(restockQuery);
+          
+          if (!restockSnap.empty) {
+            const data = restockSnap.docs[0].data();
+            const date = data.createdAt?.toDate();
+            if (date) {
+              setLastRestock(date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }));
+            }
+          } else {
+            setLastRestock('Belum ada');
+          }
+        } catch (error) {
+          // Fallback jika koleksi 'restock' belum ada atau error index
+          setLastRestock('-'); 
+        }
+
+      } catch (error) {
+        console.error("Gagal mengambil data statistik:", error);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  // Pindahkan array stats ke dalam komponen agar bisa membaca state
+  const stats = [
+    { label: 'Total Item Barang', value: totalBarang, icon: Package, color: 'bg-blue-500', href: '/admin/barang' },
+    { label: 'Stok Menipis (< 5)', value: stokMenipis, icon: AlertTriangle, color: 'bg-amber-500', href: '/admin/barang' },
+    { label: 'Restock Terakhir', value: lastRestock, icon: TrendingUp, color: 'bg-green-500', href: '/admin/restock' },
+  ];
+
   return (
     <div className="p-8">
       <div className="mb-8">
